@@ -1,5 +1,6 @@
 package org.tripathi.grpc.hellodroidtls;
 
+import java.io.File;
 import java.io.IOException;
 import java.util.logging.Logger;
 
@@ -10,6 +11,9 @@ import io.grpc.stub.StreamObserver;
 public class HelloDroidTLSServer {
 	private static final Logger logger = Logger.getLogger(HelloDroidTLSServer.class.getName());
 	private Server server;
+	private static final String certChainFile = "/path/to/server.crt";
+	private static final String privateKeyFile = "/path/to/server.pem";
+	
 
 	/**
 	 * Main launches the server from the command line.
@@ -19,14 +23,21 @@ public class HelloDroidTLSServer {
 		server.start();
 		server.blockUntilShutdown();
 	}
-
+	
 	/**
 	 * == Code to drive the server ==
 	 */
 	private void start() throws IOException {
 		/* The port on which the server should run */
-		int port = 40443;
-		server = ServerBuilder.forPort(port).addService(new GreeterImpl()).build().start();
+		int port = 8443;
+		//server = ServerBuilder.forPort(port).addService(new GreeterImpl()).build().start();
+		server = ServerBuilder.forPort(port)
+			    // Enable TLS
+			    .useTransportSecurity(new File(certChainFile), new File(privateKeyFile))
+			    .addService(new GreeterImpl())
+			    .build();
+		server.start();
+			
 		logger.info("Server started, listening on " + port);
 		Runtime.getRuntime().addShutdownHook(new Thread() {
 			@Override
